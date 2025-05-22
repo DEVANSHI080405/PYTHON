@@ -1,85 +1,47 @@
 import tkinter as tk
 from tkinter import messagebox
-import sqlite3
+def calculate():
+    try:
+        if var.get() == "Speed":
+            distance = float(entry1.get())
+            time = float(entry2.get())
+            result = distance / time
+            result_label.config(text=f"Speed = {result:.2f} km/h")
+        elif var.get() == "Distance":
+            speed = float(entry1.get())
+            time = float(entry2.get())
+            result = speed * time
+            result_label.config(text=f"Distance = {result:.2f} km")
+        elif var.get() == "Time":
+            distance = float(entry1.get())
+            speed = float(entry2.get())
+            result = distance / speed
+            result_label.config(text=f"Time = {result:.2f} hours")
+    except ValueError:
+        messagebox.showerror("Input Error", "Please enter valid numerical values.")
 
-conn = sqlite3.connect("users.db")
-cursor = conn.cursor()
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL
-    )
-""")
-conn.commit()
+app = tk.Tk()
+app.title("Speed Calculator")
 
-class LoginApp:
-    def __init__(self, master):
-        self.master = master
-        self.master.title("Registration and Login")
-        self.master.geometry("300x250")
-        self.create_widgets()
+var = tk.StringVar(value="Speed")
 
-    def create_widgets(self):
-        # Frame switcher
-        self.login_frame = tk.Frame(self.master)
-        self.register_frame = tk.Frame(self.master)
-        self.login_frame.pack()
+options = ["Speed", "Distance", "Time"]
+tk.Label(app, text="Select Calculation:").grid(row=0, column=0, padx=10, pady=10)
+option_menu = tk.OptionMenu(app, var, *options)
+option_menu.grid(row=0, column=1, padx=10, pady=10)
 
-        # Login Widgets
-        tk.Label(self.login_frame, text="Login", font=("Arial", 14)).pack(pady=10)
-        tk.Label(self.login_frame, text="Username").pack()
-        self.login_username = tk.Entry(self.login_frame)
-        self.login_username.pack()
-        tk.Label(self.login_frame, text="Password").pack()
-        self.login_password = tk.Entry(self.login_frame, show='*')
-        self.login_password.pack()
-        tk.Button(self.login_frame, text="Login", command=self.login_user).pack(pady=5)
-        tk.Button(self.login_frame, text="Go to Register", command=self.show_register).pack()
+tk.Label(app, text="Input 1:").grid(row=1, column=0, padx=10, pady=10)
+entry1 = tk.Entry(app)
+entry1.grid(row=1, column=1, padx=10, pady=10)
 
-        # Register Widgets
-        tk.Label(self.register_frame, text="Register", font=("Arial", 14)).pack(pady=10)
-        tk.Label(self.register_frame, text="Username").pack()
-        self.register_username = tk.Entry(self.register_frame)
-        self.register_username.pack()
-        tk.Label(self.register_frame, text="Password").pack()
-        self.register_password = tk.Entry(self.register_frame, show='*')
-        self.register_password.pack()
-        tk.Button(self.register_frame, text="Register", command=self.register_user).pack(pady=5)
-        tk.Button(self.register_frame, text="Go to Login", command=self.show_login).pack()
+tk.Label(app, text="Input 2:").grid(row=2, column=0, padx=10, pady=10)
+entry2 = tk.Entry(app)
+entry2.grid(row=2, column=1, padx=10, pady=10)
 
-    def show_register(self):
-        self.login_frame.pack_forget()
-        self.register_frame.pack()
+calculate_button = tk.Button(app, text="Calculate", command=calculate)
+calculate_button.grid(row=3, column=0, columnspan=2, pady=10)
 
-    def show_login(self):
-        self.register_frame.pack_forget()
-        self.login_frame.pack()
+result_label = tk.Label(app, text="Result will be shown here.")
+result_label.grid(row=4, column=0, columnspan=2, pady=10)
 
-    def register_user(self):
-        username = self.register_username.get().strip()
-        password = self.register_password.get().strip()
-        if not username or not password:
-            messagebox.showerror("Error", "All fields are required.")
-            return
-        try:
-            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-            conn.commit()
-            messagebox.showinfo("Success", "Registration successful!")
-            self.show_login()
-        except sqlite3.IntegrityError:
-            messagebox.showerror("Error", "Username already exists.")
-
-    def login_user(self):
-        username = self.login_username.get().strip()
-        password = self.login_password.get().strip()
-        cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
-        result = cursor.fetchone()
-        if result:
-            messagebox.showinfo("Success", "Login successful!")
-        else:
-            messagebox.showerror("Failed", "Invalid username or password.")
-            
-root = tk.Tk()
-app = LoginApp(root)
-root.mainloop()
+app.mainloop()
